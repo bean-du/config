@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"log"
+	"time"
 )
 
 var (
-	err   error
-	db    *sql.DB
-	DB    *gorm.DB
+	err error
+	db  *sql.DB
+	DB  *gorm.DB
 )
 
 func InitDB() func() {
@@ -26,6 +28,18 @@ func InitDB() func() {
 	}
 	db.SetMaxIdleConns(30)
 	db.SetMaxOpenConns(100)
+
+	go func() {
+		t := time.NewTimer(5 * time.Second)
+		for {
+			select {
+			case <-t.C:
+				if err := db.Ping(); err != nil {
+					log.Printf("postgre connect error: %v", err)
+				}
+			}
+		}
+	}()
 
 	return func() {
 		_ = db.Close()

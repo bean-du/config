@@ -94,10 +94,14 @@
                                     prop="pointer"
                                     label="CurrentKey"
                                     width="100">
-                                <template slot-scope="scope">
-                                    <el-button type="success" size="mini" v-if="scope.row.pointer == 'yes'"
-                                               icon="el-icon-star-off" circle></el-button>
+
+                                <template slot-scope="scope" >
+                                    <div class="container">
+                                        <el-button type="success" size="mini" v-if="scope.row.pointer == 'yes'"
+                                                   icon="el-icon-star-off" circle></el-button>
+                                    </div>
                                 </template>
+
                             </el-table-column>
                             <el-table-column
                                     prop="created_at"
@@ -437,7 +441,16 @@
     #box {
         display: none
     }
-
+    .container{
+        width: 100%;
+        display: flex;/*设为 Flex 布局以后，子元素的float、clear和vertical-align属性将失效*/
+        display: -webkit-flex; /* Safari */
+        flex-direction: column;/*容器内项目的排列方向(默认横向排列 row)*/
+        flex-wrap: nowrap;/*容器内项目换行方式*/
+        justify-content: center;/*项目在主轴上的对齐方式*/
+        align-items: center;/*项目在交叉轴上如何对齐*/
+        align-content: center;/*定义了多根轴线的对齐方式。如果项目只有一根轴线，该属性不起作用*/
+    }
     .margin_top {
         margin-top: 10px;
     }

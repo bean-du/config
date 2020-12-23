@@ -1,6 +1,7 @@
 package etcd
 
 import (
+	"coco-tool/config/conf"
 	"coco-tool/config/provider"
 	"context"
 	"github.com/coreos/etcd/clientv3"
@@ -20,8 +21,8 @@ type Etcd struct {
 	kv       clientv3.KV
 }
 
-func init() {
-	defaultProvider, err := NewDefaultProvider()
+func Init() {
+	defaultProvider, err := NewDefaultProvider(conf.Conf.Etcd.Endpoint...)
 	if err != nil {
 		panic(err)
 	}
@@ -42,7 +43,6 @@ func NewDefaultProvider(endPoint ...string) (*Etcd, error) {
 }
 
 func NewProvider(username, password string, timeout time.Duration, endPoint ...string) (*Etcd, error) {
-
 	etcd := &Etcd{
 		Endpoint: endPoint,
 		Timeout:  timeout,

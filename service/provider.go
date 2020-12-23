@@ -84,7 +84,7 @@ var index =`
                 <div>
                     <ul style="list-style-type:none; margin-left: -30px;">
                         <li v-for="item in keyList" style="line-height: 30px; font-size: 18px">
-                            <el-tooltip class="item" effect="dark" :content="item" placement="top">
+                            <el-tooltip class="item" effect="dark" :content="item" placement="right">
                                 <el-link type="success" @click="getKeyDetails(item)">{{ item }}</el-link>
                             </el-tooltip>
                         </li>
@@ -123,9 +123,11 @@ var index =`
                                     prop="pointer"
                                     label="CurrentKey"
                                     width="100">
-                                <template slot-scope="scope">
-                                    <el-button type="success" size="mini" v-if="scope.row.pointer == 'yes'"
-                                               icon="el-icon-star-off" circle></el-button>
+                                 <template slot-scope="scope" >
+                                    <div class="container">
+                                        <el-button type="danger" size="mini" v-if="scope.row.pointer == 'yes'"
+                                                   icon="el-icon-star-off" circle></el-button>
+                                    </div>
                                 </template>
                             </el-table-column>
                             <el-table-column
@@ -479,7 +481,16 @@ var index =`
     .function_button {
         margin-top: 20px;
     }
-
+ 	.container{
+        width: 100%;
+        display: flex;/*设为 Flex 布局以后，子元素的float、clear和vertical-align属性将失效*/
+        display: -webkit-flex; /* Safari */
+        flex-direction: column;/*容器内项目的排列方向(默认横向排列 row)*/
+        flex-wrap: nowrap;/*容器内项目换行方式*/
+        justify-content: center;/*项目在主轴上的对齐方式*/
+        align-items: center;/*项目在交叉轴上如何对齐*/
+        align-content: center;/*定义了多根轴线的对齐方式。如果项目只有一根轴线，该属性不起作用*/
+    }
     #app {
         margin: -10px;
     }

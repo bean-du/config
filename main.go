@@ -2,6 +2,7 @@ package main
 
 import (
 	"coco-tool/config/conf"
+	"coco-tool/config/provider/etcd"
 	"coco-tool/config/repostory"
 	"coco-tool/config/web"
 	"errors"
@@ -10,13 +11,17 @@ import (
 	"syscall"
 
 	_ "coco-tool/config/provider"
-	_ "coco-tool/config/provider/etcd"
 	"github.com/urfave/cli/v2"
 )
 
 var cancelFuncs = make([]func(), 0, 0)
 
 func main() {
+	defer func() {
+		for _, cancel := range cancelFuncs {
+			cancel()
+		}
+	}()
 	app := &cli.App{
 		Flags: []cli.Flag{
 			&cli.StringFlag{
@@ -31,18 +36,14 @@ func main() {
 			}
 			cancelFuncs = append(cancelFuncs, conf.Init(c.String("config"))...)
 			cancelFuncs = append(cancelFuncs, web.Run())
+			etcd.Init()
+			repostory.Init()
 			return nil
 		},
 	}
 	if err := app.Run(os.Args); err != nil {
 		panic(err)
 	}
-	repostory.Init()
-	defer func() {
-		for _, cancel := range cancelFuncs {
-			cancel()
-		}
-	}()
 	quit := make(chan os.Signal)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
