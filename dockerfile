@@ -9,7 +9,6 @@ ENV CI_BUILD_INFO=$ARG_CI_BUILD_INFO
 LABEL CI_BUILD_INFO=$ARG_CI_BUILD_INFO
 
 COPY ./bin/${PROJECT_NAME} /app/bin/
-COPY --from=0 ./config.json /app/bin/
 
 WORKDIR /app/bin
-ENTRYPOINT "./${PROJECT_NAME} -f ./config.json"
+ENTRYPOINT "./${PROJECT_NAME}"
