@@ -12,4 +12,4 @@ COPY ./bin/${PROJECT_NAME} /app/bin/
 COPY ./config.json /app/bin/
 
 WORKDIR /app/bin
-ENTRYPOINT "./${PROJECT_NAME} -f ./config.json"
+# ENTRYPOINT "./${PROJECT_NAME} -f ./config.json"
