@@ -1,0 +1,16 @@
+image: registry.lemonvd.com/coco-server/docker/go-env:latest
+
+.base:
+  variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+  tags:
+    - goci-linux
+
+build:
+  extends: .base
+  stage: build
+  script:
+    - go build -o ./bin/$CI_PROJECT_NAME ./main.go
+    - docker build -t $IMAGE_TAG --build-arg ARG_PROJECT_NAME=$CI_PROJECT_NAME --build-arg ARG_CI_BUILD_INFO="$CI_BUILD_INFO" .
+    - docker push $IMAGE_TAG
+    - docker image prune -f
