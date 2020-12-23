@@ -1,0 +1,488 @@
+package service
+
+import "coco-tool/config/provider"
+
+var ProviderSrv = &providerSrv{}
+
+type providerSrv struct {}
+
+func (p *providerSrv) GetProviders() []string {
+	pro := make([]string, 0, 0)
+	for k := range provider.ProviderSrv.Providers {
+		pro = append(pro, k)
+	}
+	return pro
+}
+
+func (p *providerSrv) SetProvider(name string)  {
+	provider.ProviderSrv.SetCurrent(name)
+}
+
+func (p *providerSrv) GetCurrentProvider() string {
+	return provider.ProviderSrv.CurrentProvider
+}
+
+func (p *providerSrv) Index() string {
+	return index
+}
+
+var index =`
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Coco-Config</title>
+    <!-- import CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://cdn.bootcdn.net/ajax/libs/axios/0.21.0/axios.min.js"></script>
+</head>
+<body>
+<div id="app">
+    <el-container>
+        <el-header style="background-color: #2b2f3a; margin-bottom: 20px;">
+            <div class="my_menu">
+                <el-row style="height: 60px">
+                    <el-col :span="4" style="height: 60px; font-size:40px; ">
+                        <span style="line-height: 60px;">Configure</span>
+                    </el-col>
+                    <el-col :span="16" style="height: 60px">
+                        <span></span>
+                    </el-col>
+                    <el-col :span="4" style="height: 60px">
+                        <div style="margin-top: 12px;">
+                            <template>
+                                <el-select v-model="currentProvider" placeholder="请选择" @change="setProvider(currentProvider)">
+                                    <el-option
+                                            v-for="item in providers"
+                                            :key="item.value"
+                                            :label="item.label"
+                                            :value="item.value">
+                                    </el-option>
+                                </el-select>
+                            </template>
+                        </div>
+                    </el-col>
+                </el-row>
+            </div>
+        </el-header>
+        <el-container style="width: 1024px;height: 100%; margin:0 auto">
+            <el-aside width="250px">
+                <div style="margin-left: 20px; margin-top: 20px;">
+                    <span style=" line-height: 30px; font-size: 25px;">Key List</span>
+                </div>
+                <div class="function_button">
+                    <div>Input your search keyword:</div>
+                    <div class="margin_top">
+                        <el-input
+                                size="mini"
+                                placeholder="please input your key"
+                                v-model="searchInput"
+                                clearable>
+                        </el-input>
+                    </div>
+                </div>
+                <div>
+                    <ul style="list-style-type:none; margin-left: -30px;">
+                        <li v-for="item in keyList" style="line-height: 30px; font-size: 18px">
+                            <el-tooltip class="item" effect="dark" :content="item" placement="top">
+                                <el-link type="success" @click="getKeyDetails(item)">{{ item }}</el-link>
+                            </el-tooltip>
+                        </li>
+                    </ul>
+                </div>
+            </el-aside>
+            <el-main>
+                <div>
+                    <el-row>
+                        <el-button size="mini" type="primary" @click="openDialog('create')">Create</el-button>
+                        <el-button size="mini" type="danger" @click="realDel()">Delete</el-button>
+                        <el-button size="mini" type="info" @click="openDialog('etcd')">View</el-button>
+                    </el-row>
+                </div>
+                <div class="function_button">
+                    <div>
+                        CurrentKey:
+                        <el-link v-if="currentKey != ''" type="success">&nbsp {{ currentKey }}</el-link>
+                    </div>
+                    <div class="margin_top">
+                        <el-table
+                                :data="tableData"
+                                border
+                                style="width: 100%">
+                            <el-table-column
+                                    prop="key"
+                                    label="Key"
+                                    width="120">
+                            </el-table-column>
+                            <el-table-column
+                                    prop="version"
+                                    label="Version"
+                                    width="120">
+                            </el-table-column>
+                            <el-table-column
+                                    prop="pointer"
+                                    label="CurrentKey"
+                                    width="100">
+                                <template slot-scope="scope">
+                                    <el-button type="success" size="mini" v-if="scope.row.pointer == 'yes'"
+                                               icon="el-icon-star-off" circle></el-button>
+                                </template>
+                            </el-table-column>
+                            <el-table-column
+                                    prop="created_at"
+                                    label="CreatedAt">
+                            </el-table-column>
+                            <el-table-column
+                                    fixed="right"
+                                    label="Operate"
+                                    width="200">
+                                <template slot-scope="scope">
+                                    <el-button @click="openDialog('db',scope.row.key, scope.row.version)" type="text" size="mini">view
+                                    </el-button>
+                                    <el-button @click="apply(scope.row)" type="text" size="mini">apply</el-button>
+                                    <el-button @click="delKey(scope.row)" type="text" size="mini">delete</el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                    </div>
+                </div>
+            </el-main>
+        </el-container>
+    </el-container>
+    <el-dialog
+            title="Config detail"
+            :visible.sync="dialogVisible"
+            width="60%"
+            :before-close="handleClose">
+        <el-form :label-position="labelPosition" label-width="60px" :model="formData">
+            <el-form-item label="Key">
+                <el-input v-model="formData.key"></el-input>
+            </el-form-item>
+            <el-form-item label="Value">
+                <el-input type="textarea" v-model="formData.value"></el-input>
+            </el-form-item>
+        </el-form>
+        <span slot="footer" class="dialog-footer">
+            <el-button @click="dialogVisible = false">取 消</el-button>
+            <el-button type="primary" @click="create()">确 定</el-button>
+        </span>
+    </el-dialog>
+</div>
+</body>
+<!-- import Vue before Element -->
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<!-- import JavaScript -->
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                formData: {
+                    key: '',
+                    value: ''
+                },
+                searchInput: '',
+                dialogVisible: false,
+                labelPosition: 'left',
+                keyList: [],
+                newList: [],
+                tableData: [],
+                currentKey: '',
+                currentProvider: '',
+                providers: []
+            }
+        },
+        methods: {
+            openDialog(operate, key, version) {
+                this.formData = {}
+                this.dialogVisible = true
+                switch (operate) {
+                    case "etcd":
+                        // 获取etcd value
+                        this.viewDetail(this.currentKey)
+                    case "db":
+                        // 获取数据库带version的value
+                        this.viewDetail(key, version)
+                    case "create":
+
+                }
+            },
+            getKeyList() {
+                let self = this
+                this.keyList = []
+                axios.get("/keys").then(function (res) {
+                    if (res.status == 200) {
+                        let data = res.data.data
+                        self.keyList = data
+                        console.log(self.keyList)
+                    }
+                }).catch(function (error) {
+                    console.log(error);
+                });
+            },
+            delKey(row) {
+                let self = this
+                axios({
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    dataType: 'json',
+                    method: 'post',
+                    url: "/del",
+                    data: {
+                        "key": row.key,
+                        "version": row.version,
+                    }
+                }).then(function (res) {
+                    if (res.status == 200 && res.data.code == 0) {
+                        self.getKeyDetails(row.key)
+                    }
+                }).catch(function (error) {
+                    console.log(error);
+                });
+            },
+            apply(row) {
+                let self = this
+                axios({
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    dataType: 'json',
+                    method: 'post',
+                    url: "/apply",
+                    data: {
+                        "key": row.key,
+                        "version": row.version,
+                        "value": row.value
+                    }
+                }).then(function (res) {
+                    if (res.status == 200) {
+                        if (res.data.code != 0) {
+                            this.$message.warning(res.data.msg)
+                        }
+                        self.getKeyDetails(row.key)
+                    }
+                }).catch(function (error) {
+                    console.log(error);
+                });
+            },
+            getKeyDetails(key) {
+                this.currentKey = key
+                let self = this
+                this.tableData = []
+                axios({
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    dataType: 'json',
+                    method: 'post',
+                    url: "/keyDetails",
+                    data: {
+                        "key": key
+                    }
+                }).then(function (res) {
+                    if (res.status == 200) {
+                        let data = res.data.data
+                        self.tableData = data
+                        console.log(self.tableData)
+                    }
+                }).catch(function (error) {
+                    console.log(error);
+                });
+            },
+            handleClose(done) {
+                done()
+                // this.$confirm('Confirm cancel create？')
+                //     .then(_ => {
+                //         done();
+                //     })
+                //     .catch(_ => {});
+            },
+            viewDetail(key, version) {
+                if (key == "") {
+                    this.$message.error("key is empty");return
+                }
+                let self = this
+                axios({
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    dataType: 'json',
+                    method: 'post',
+                    url: "/get",
+                    data: {
+                        "key": key,
+                        "version": version
+                    }
+                }).then(function (res) {
+                    if (res.status == 200) {
+                        if (res.data.code == 0) {
+                            self.formData = res.data.data
+                            self.getKeyDetails(key)
+                        }else {
+                            this.$message.error(res.data.data.msg)
+                        }
+                    }
+                }).catch(function (error) {
+                    console.log(error);
+                });
+            },
+            realDel() {
+                let self = this
+                axios({
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    dataType: 'json',
+                    method: 'post',
+                    url: "/del",
+                    data: {
+                        "key": self.currentKey,
+                    }
+                }).then(function (res) {
+                    if (res.status == 200 && res.data.code == 0) {
+                        self.getKeyList()
+                    }
+                }).catch(function (error) {
+                    console.log(error);
+                });
+            },
+            create() {
+                let self = this
+                console.log(this.formData)
+                if (this.formData.key == "" || this.formData.value == "") {
+                    this.$message.error('key or value is empty');
+                    return
+                }
+                this.dialogVisible = true
+                axios({
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    dataType: 'json',
+                    method: 'post',
+                    url: "/set",
+                    data: {
+                        "key": self.formData.key,
+                        "value": self.formData.value
+                    }
+                }).then(function (res) {
+                    if (res.status == 200) {
+                        if (res.data.code == 0 ){
+                            self.getKeyList()
+                            self.getKeyDetails(self.formData.key)
+                            self.dialogVisible = false
+                        }else {
+                            self.$message.error(res.data.msg)
+                        }
+                    }
+                }).catch(function (error) {
+                    console.log(error);
+                });
+            },
+            getProviders() {
+                let self = this
+                axios.get("/providers").then(function (res) {
+                    if (res.status == 200) {
+                        if (res.data.code == 0){
+                            let data = res.data.data
+                            for (let i = 0; i < data.length; i ++) {
+                                let p = {
+                                    "label": data[i],
+                                    "value": data[i]
+                                }
+                                self.providers.push(p)
+                            }
+                        }else {
+                            self.$message.error(res.data.msg)
+                        }
+                    }
+                }).catch(function (error) {
+                    console.log(error);
+                });
+            },
+            getCurrent() {
+                let self = this
+                axios.get("/currentProvider").then(function (res) {
+                    if (res.status == 200) {
+                        if (res.data.code == 0) {
+                            let data = res.data.data
+                            self.currentProvider = data
+                        }else {
+                            self.$message.error(res.data.msg)
+                        }
+                    }
+                }).catch(function (error) {
+                    console.log(error);
+                });
+            },
+            setProvider(value){
+                let self = this
+                axios.get("/setProvider?name="+ value).then(function (res) {
+                    if (res.status == 200) {
+                        if (res.data.code == 0) {
+                        }else {
+                            self.$message.error(res.data.msg)
+                        }
+                    }
+                }).catch(function (error) {
+                    console.log(error);
+                });
+            }
+        },
+        mounted() {
+            this.getKeyList()
+            this.getProviders()
+            this.getCurrent()
+        },
+        watch: {
+            searchInput: function () {
+                if (this.searchInput == "") {
+                    this.getKeyList()
+                }
+                this.newList = []
+                for (let i = 0; i < this.keyList.length; i++) {
+                    if (this.keyList[i].indexOf(this.searchInput) != -1) {
+                        this.newList.push(this.keyList[i])
+                    }
+                }
+                this.keyList = this.newList
+            }
+        }
+    })
+</script>
+
+<style>
+    body {
+        background-color: white;
+    }
+
+    #box {
+        display: none
+    }
+
+    .margin_top {
+        margin-top: 10px;
+    }
+
+    .my_menu {
+        width: 1024px;
+        height: 60px;
+        margin: 0 auto;
+    }
+
+    .my_menu span {
+        color: #dfe4ed;
+    }
+
+    .function_button {
+        margin-top: 20px;
+    }
+
+    #app {
+        margin: -10px;
+    }
+</style>
+</html>
+`
