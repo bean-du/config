@@ -22,7 +22,8 @@
                     <el-col :span="4" style="height: 60px">
                         <div style="margin-top: 12px;">
                             <template>
-                                <el-select v-model="currentProvider" placeholder="请选择" @change="setProvider(currentProvider)">
+                                <el-select v-model="currentProvider" placeholder="请选择"
+                                           @change="setProvider(currentProvider)">
                                     <el-option
                                             v-for="pro in providers"
                                             :key="pro.value"
@@ -73,7 +74,7 @@
                                     @confirm="handleDelete()"
                                     title="Are you sure to delete this Key？"
                             >
-                                <el-button slot="reference" size="mini" type="danger" >Delete</el-button>
+                                <el-button slot="reference" size="mini" type="danger">Delete</el-button>
                             </el-popconfirm>
                             <el-button size="mini" type="info" @click="openDialog('etcd')">View</el-button>
                         </template>
@@ -104,7 +105,7 @@
                                     label="CurrentKey"
                                     width="100">
 
-                                <template slot-scope="scope" >
+                                <template slot-scope="scope">
                                     <div class="container">
                                         <el-button type="success" size="mini" v-if="scope.row.pointer == 'yes'"
                                                    icon="el-icon-star-off" circle></el-button>
@@ -121,7 +122,8 @@
                                     label="Operate"
                                     width="200">
                                 <template slot-scope="scope">
-                                    <el-button @click="openDialog('db',scope.row.key, scope.row.version)" type="text" size="mini">view
+                                    <el-button @click="openDialog('db',scope.row.key, scope.row.version)" type="text"
+                                               size="mini">view
                                     </el-button>
                                     <el-button @click="apply(scope.row)" type="text" size="mini">apply</el-button>
                                     <el-button @click="delKey(scope.row)" type="text" size="mini">delete</el-button>
@@ -199,7 +201,9 @@
                     if (res.status == 200) {
                         let data = res.data.data
                         self.keyList = data
-                        console.log(self.keyList)
+                        if (self.searchInput != ''){
+                            self.handleSearch()
+                        }
                     }
                 }).catch(function (error) {
                     console.log(error);
@@ -285,7 +289,8 @@
             },
             viewDetail(key, version) {
                 if (key == "") {
-                    this.$message.error("key is empty");return
+                    this.$message.error("key is empty");
+                    return
                 }
                 let self = this
                 axios({
@@ -304,7 +309,7 @@
                         if (res.data.code == 0) {
                             self.formData = res.data.data
                             self.getKeyDetails(key)
-                        }else {
+                        } else {
                             this.$message.error(res.data.data.msg)
                         }
                     }
@@ -318,7 +323,8 @@
             realDel() {
                 let self = this
                 if (self.currentKey == '') {
-                    self.$message.error('please choose you want to delete key'); return
+                    self.$message.error('please choose you want to delete key');
+                    return
                 }
                 axios({
                     headers: {
@@ -359,11 +365,11 @@
                     }
                 }).then(function (res) {
                     if (res.status == 200) {
-                        if (res.data.code == 0 ){
+                        if (res.data.code == 0) {
                             self.getKeyList()
                             self.getKeyDetails(self.formData.key)
                             self.dialogVisible = false
-                        }else {
+                        } else {
                             self.$message.error(res.data.msg)
                         }
                     }
@@ -375,16 +381,16 @@
                 let self = this
                 axios.get("http://127.0.0.1:9091/providers").then(function (res) {
                     if (res.status == 200) {
-                        if (res.data.code == 0){
+                        if (res.data.code == 0) {
                             let data = res.data.data
-                            for (let i = 0; i < data.length; i ++) {
+                            for (let i = 0; i < data.length; i++) {
                                 let p = {
                                     "label": data[i],
                                     "value": data[i]
                                 }
                                 self.providers.push(p)
                             }
-                        }else {
+                        } else {
                             self.$message.error(res.data.msg)
                         }
                     }
@@ -399,7 +405,7 @@
                         if (res.data.code == 0) {
                             let data = res.data.data
                             self.currentProvider = data
-                        }else {
+                        } else {
                             self.$message.error(res.data.msg)
                         }
                     }
@@ -407,18 +413,31 @@
                     console.log(error);
                 });
             },
-            setProvider(value){
+            setProvider(value) {
                 let self = this
-                axios.get("http://127.0.0.1:9091/setProvider?name="+ value).then(function (res) {
+                axios.get("http://127.0.0.1:9091/setProvider?name=" + value).then(function (res) {
                     if (res.status == 200) {
                         if (res.data.code == 0) {
-                        }else {
+                        } else {
                             self.$message.error(res.data.msg)
                         }
                     }
                 }).catch(function (error) {
                     console.log(error);
                 });
+            },
+            handleSearch() {
+                if (this.searchInput == "") {
+                    this.getKeyList()
+                }else {
+                    this.newList = []
+                    for (let i = 0; i < this.keyList.length; i++) {
+                        if (this.keyList[i].indexOf(this.searchInput) != -1) {
+                            this.newList.push(this.keyList[i])
+                        }
+                    }
+                    this.keyList = this.newList
+                }
             }
         },
         mounted() {
@@ -432,18 +451,9 @@
         //
         // },
         watch: {
-            searchInput: function () {
-                if (this.searchInput == "") {
-                    this.getKeyList()
-                }
-                this.newList = []
-                for (let i = 0; i < this.keyList.length; i++) {
-                    if (this.keyList[i].indexOf(this.searchInput) != -1) {
-                        this.newList.push(this.keyList[i])
-                    }
-                }
-                this.keyList = this.newList
-            }
+            searchInput: function (){
+                this.handleSearch()
+            },
         }
     })
 </script>
@@ -456,16 +466,18 @@
     #box {
         display: none
     }
-    .container{
+
+    .container {
         width: 100%;
-        display: flex;/*设为 Flex 布局以后，子元素的float、clear和vertical-align属性将失效*/
+        display: flex; /*设为 Flex 布局以后，子元素的float、clear和vertical-align属性将失效*/
         display: -webkit-flex; /* Safari */
-        flex-direction: column;/*容器内项目的排列方向(默认横向排列 row)*/
-        flex-wrap: nowrap;/*容器内项目换行方式*/
-        justify-content: center;/*项目在主轴上的对齐方式*/
-        align-items: center;/*项目在交叉轴上如何对齐*/
-        align-content: center;/*定义了多根轴线的对齐方式。如果项目只有一根轴线，该属性不起作用*/
+        flex-direction: column; /*容器内项目的排列方向(默认横向排列 row)*/
+        flex-wrap: nowrap; /*容器内项目换行方式*/
+        justify-content: center; /*项目在主轴上的对齐方式*/
+        align-items: center; /*项目在交叉轴上如何对齐*/
+        align-content: center; /*定义了多根轴线的对齐方式。如果项目只有一根轴线，该属性不起作用*/
     }
+
     .margin_top {
         margin-top: 10px;
     }

@@ -226,7 +226,9 @@ var index =`
                     if (res.status == 200) {
                         let data = res.data.data
                         self.keyList = data
-                        console.log(self.keyList)
+                        if (self.searchInput != ''){
+                            self.handleSearch()
+                        }
                     }
                 }).catch(function (error) {
                     console.log(error);
@@ -446,6 +448,19 @@ var index =`
                 }).catch(function (error) {
                     console.log(error);
                 });
+            },
+			handleSearch() {
+                if (this.searchInput == "") {
+                    this.getKeyList()
+                }else {
+                    this.newList = []
+                    for (let i = 0; i < this.keyList.length; i++) {
+                        if (this.keyList[i].indexOf(this.searchInput) != -1) {
+                            this.newList.push(this.keyList[i])
+                        }
+                    }
+                    this.keyList = this.newList
+                }
             }
         },
         mounted() {
@@ -454,18 +469,9 @@ var index =`
             this.getCurrent()
         },
         watch: {
-            searchInput: function () {
-                if (this.searchInput == "") {
-                    this.getKeyList()
-                }
-                this.newList = []
-                for (let i = 0; i < this.keyList.length; i++) {
-                    if (this.keyList[i].indexOf(this.searchInput) != -1) {
-                        this.newList.push(this.keyList[i])
-                    }
-                }
-                this.keyList = this.newList
-            }
+           	searchInput: function (){
+                this.handleSearch()
+           	},
         }
     })
 </script>
