@@ -94,9 +94,18 @@ var index =`
             <el-main>
                 <div>
                     <el-row>
-                        <el-button size="mini" type="primary" @click="openDialog('create')">Create</el-button>
-                        <el-button size="mini" type="danger" @click="realDel()">Delete</el-button>
-                        <el-button size="mini" type="info" @click="openDialog('etcd')">View</el-button>
+                        <template>
+                            <el-button size="mini" type="primary" @click="openDialog('create')">Create</el-button>
+                            <el-popconfirm
+                                    cancel-button-text="cancel"
+                                    confirm-button-text="submit"
+                                    @confirm="handleDelete()"
+                                    title="Are you sure to delete this Key？"
+                            >
+                                <el-button slot="reference" size="mini" type="danger" >Delete</el-button>
+                            </el-popconfirm>
+                            <el-button size="mini" type="info" @click="openDialog('etcd')">View</el-button>
+                        </template>
                     </el-row>
                 </div>
                 <div class="function_button">
@@ -330,8 +339,14 @@ var index =`
                     console.log(error);
                 });
             },
+			handleDelete() {
+                this.realDel()
+            },
             realDel() {
                 let self = this
+				if (self.currentKey == '') {
+                    self.$message.error('please choose you want to delete key'); return
+                }
                 axios({
                     headers: {
                         'Content-Type': 'application/json'
