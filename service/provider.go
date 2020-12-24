@@ -226,6 +226,7 @@ var index =`
                     if (res.status == 200) {
                         let data = res.data.data
                         self.keyList = data
+                        self.newList = data
                         if (self.searchInput != ''){
                             self.handleSearch()
                         }
@@ -450,17 +451,13 @@ var index =`
                 });
             },
 			handleSearch() {
-                if (this.searchInput == "") {
-                    this.getKeyList()
-                }else {
-                    this.newList = []
-                    for (let i = 0; i < this.keyList.length; i++) {
-                        if (this.keyList[i].indexOf(this.searchInput) != -1) {
-                            this.newList.push(this.keyList[i])
-                        }
-                    }
-                    this.keyList = this.newList
-                }
+				let tmp = []
+				for (let i = 0; i < this.newList.length; i++) {
+					if (this.newList[i].indexOf(this.searchInput) != -1) {
+						tmp.push(this.newList[i])
+					}
+				}
+				this.keyList = tmp
             }
         },
         mounted() {

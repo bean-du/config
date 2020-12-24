@@ -10,6 +10,9 @@
   "etcd": {
     "endpoint": [
       "127.0.0.1:2379"
-    ]
+    ],
+    "timeout": 5,
+    "username": "",
+    "password": ""
   }
 }

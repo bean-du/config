@@ -9,8 +9,7 @@ import (
 )
 
 var (
-	DefaultEndpoint = []string{"127.0.0.1:2379"}
-	DefaultTimeout  = time.Second * 5
+	DefaultEtcd = &Etcd{Endpoint: []string{"127.0.0.1:2379"}, Timeout: time.Second * 5}
 )
 
 type Etcd struct {
@@ -21,42 +20,48 @@ type Etcd struct {
 	kv       clientv3.KV
 }
 
-func Init() {
-	defaultProvider, err := NewDefaultProvider(conf.Conf.Etcd.Endpoint...)
-	if err != nil {
+type Options func(e *Etcd)
+
+func NewEtcd(options ...Options) *Etcd {
+	etcd := DefaultEtcd
+	for _, opt := range options {
+		opt(etcd)
+	}
+	if err := etcd.init(); err != nil {
 		panic(err)
 	}
-	provider.Register("etcd", defaultProvider)
+	return etcd
 }
 
-func NewDefaultProvider(endPoint ...string) (*Etcd, error) {
-	addr := DefaultEndpoint
-	if len(endPoint) > 0 {
-		addr = endPoint
+func WithEndpoint(endPoint ...string) Options {
+	return func(e *Etcd) {
+		e.Endpoint = endPoint
 	}
-	etcd := &Etcd{
-		Endpoint: addr,
-		Timeout:  DefaultTimeout,
-	}
-	err := etcd.init()
-	return etcd, err
 }
 
-func NewProvider(username, password string, timeout time.Duration, endPoint ...string) (*Etcd, error) {
-	etcd := &Etcd{
-		Endpoint: endPoint,
-		Timeout:  timeout,
-		Username: username,
-		Password: password,
+func WithTimeout(timeout time.Duration) Options  {
+	return func(e *Etcd) {
+		e.Timeout = timeout
 	}
-	err := etcd.init()
-	return etcd, err
+}
+
+func WithUsernameAndPassword(username, password string) Options  {
+	return func(e *Etcd) {
+		e.Username = username
+		e.Password = password
+	}
+}
+
+func Init() {
+	c := conf.Conf.Etcd
+	etcd := NewEtcd(WithEndpoint(c.Endpoint...), WithTimeout(time.Duration(c.Timeout)), WithUsernameAndPassword(c.Username, c.Password))
+	provider.Register("etcd", etcd)
 }
 
 func (e *Etcd) init() error {
 	cfg := clientv3.Config{
 		Endpoints:   e.Endpoint,
-		DialTimeout: e.Timeout,
+		DialTimeout: e.Timeout * time.Second,
 		Username:    e.Username,
 		Password:    e.Password,
 	}

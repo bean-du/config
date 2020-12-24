@@ -20,6 +20,7 @@ type Config struct {
 
 	Etcd struct {
 		Endpoint []string `json:"endpoint"`
+		Timeout  int64    `json:"timeout"`
 		Username string   `json:"username"`
 		Password string   `json:"password"`
 	} `json:"etcd"`
