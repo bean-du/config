@@ -26,14 +26,13 @@ func (p *providerSrv) Index() string {
 	return index
 }
 
-var index =`
-<!DOCTYPE html>
+var index =`<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <title>Coco-Config</title>
     <!-- import CSS -->
-	<link href="https://cdn.bootcdn.net/ajax/libs/element-ui/2.14.1/theme-chalk/index.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcdn.net/ajax/libs/element-ui/2.14.1/theme-chalk/index.min.css" rel="stylesheet">
     <script src="https://cdn.bootcdn.net/ajax/libs/axios/0.21.0/axios.min.js"></script>
 </head>
 <body>
@@ -132,7 +131,7 @@ var index =`
                                     prop="pointer"
                                     label="CurrentKey"
                                     width="100">
-                                 <template slot-scope="scope" >
+                                <template slot-scope="scope" >
                                     <div class="container">
                                         <el-button type="danger" size="mini" v-if="scope.row.pointer == 'yes'"
                                                    icon="el-icon-star-off" circle></el-button>
@@ -189,6 +188,7 @@ var index =`
         el: '#app',
         data: function () {
             return {
+                baseUrl: '',
                 formData: {
                     key: '',
                     value: ''
@@ -222,7 +222,7 @@ var index =`
             getKeyList() {
                 let self = this
                 this.keyList = []
-                axios.get("/keys").then(function (res) {
+                axios.get(this.baseUrl + "/keys").then(function (res) {
                     if (res.status == 200) {
                         let data = res.data.data
                         self.keyList = data
@@ -243,7 +243,7 @@ var index =`
                     },
                     dataType: 'json',
                     method: 'post',
-                    url: "/del",
+                    url: this.baseUrl + "/del",
                     data: {
                         "key": row.key,
                         "version": row.version,
@@ -264,7 +264,7 @@ var index =`
                     },
                     dataType: 'json',
                     method: 'post',
-                    url: "/apply",
+                    url: this.baseUrl + "/apply",
                     data: {
                         "key": row.key,
                         "version": row.version,
@@ -291,7 +291,7 @@ var index =`
                     },
                     dataType: 'json',
                     method: 'post',
-                    url: "/keyDetails",
+                    url: this.baseUrl + "/keyDetails",
                     data: {
                         "key": key
                     }
@@ -324,7 +324,7 @@ var index =`
                     },
                     dataType: 'json',
                     method: 'post',
-                    url: "/get",
+                    url: this.baseUrl +  "/get",
                     data: {
                         "key": key,
                         "version": version
@@ -342,12 +342,12 @@ var index =`
                     console.log(error);
                 });
             },
-			handleDelete() {
+            handleDelete() {
                 this.realDel()
             },
             realDel() {
                 let self = this
-				if (self.currentKey == '') {
+                if (self.currentKey == '') {
                     self.$message.error('please choose you want to delete key'); return
                 }
                 axios({
@@ -356,7 +356,7 @@ var index =`
                     },
                     dataType: 'json',
                     method: 'post',
-                    url: "/del",
+                    url: this.baseUrl + "/del",
                     data: {
                         "key": self.currentKey,
                     }
@@ -382,7 +382,7 @@ var index =`
                     },
                     dataType: 'json',
                     method: 'post',
-                    url: "/set",
+                    url: this.baseUrl + "/set",
                     data: {
                         "key": self.formData.key,
                         "value": self.formData.value
@@ -403,7 +403,7 @@ var index =`
             },
             getProviders() {
                 let self = this
-                axios.get("/providers").then(function (res) {
+                axios.get(this.baseUrl + "/providers").then(function (res) {
                     if (res.status == 200) {
                         if (res.data.code == 0){
                             let data = res.data.data
@@ -424,7 +424,7 @@ var index =`
             },
             getCurrent() {
                 let self = this
-                axios.get("/currentProvider").then(function (res) {
+                axios.get(this.baseUrl+ "/currentProvider").then(function (res) {
                     if (res.status == 200) {
                         if (res.data.code == 0) {
                             let data = res.data.data
@@ -439,7 +439,7 @@ var index =`
             },
             setProvider(value){
                 let self = this
-                axios.get("/setProvider?name="+ value).then(function (res) {
+                axios.get(this.baseUrl + "/setProvider?name="+ value).then(function (res) {
                     if (res.status == 200) {
                         if (res.data.code == 0) {
                         }else {
@@ -450,14 +450,15 @@ var index =`
                     console.log(error);
                 });
             },
-			handleSearch() {
-				let tmp = []
-				for (let i = 0; i < this.newList.length; i++) {
-					if (this.newList[i].indexOf(this.searchInput) != -1) {
-						tmp.push(this.newList[i])
-					}
-				}
-				this.keyList = tmp
+            handleSearch() {
+                let tmp = []
+                for (let i = 0; i < this.newList.length; i++) {
+                    if (this.newList[i].indexOf(this.searchInput) != -1) {
+                        tmp.push(this.newList[i])
+                    }
+                }
+                tmp.sort()
+                this.keyList = tmp
             }
         },
         mounted() {
@@ -466,9 +467,9 @@ var index =`
             this.getCurrent()
         },
         watch: {
-           	searchInput: function (){
+            searchInput: function (){
                 this.handleSearch()
-           	},
+            },
         }
     })
 </script>
@@ -499,7 +500,7 @@ var index =`
     .function_button {
         margin-top: 20px;
     }
- 	.container{
+    .container{
         width: 100%;
         display: flex;/*设为 Flex 布局以后，子元素的float、clear和vertical-align属性将失效*/
         display: -webkit-flex; /* Safari */

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Coco-Config</title>
     <!-- import CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <link href="https://cdn.bootcdn.net/ajax/libs/element-ui/2.14.1/theme-chalk/index.min.css" rel="stylesheet">
     <script src="https://cdn.bootcdn.net/ajax/libs/axios/0.21.0/axios.min.js"></script>
 </head>
 <body>
@@ -22,13 +22,12 @@
                     <el-col :span="4" style="height: 60px">
                         <div style="margin-top: 12px;">
                             <template>
-                                <el-select v-model="currentProvider" placeholder="请选择"
-                                           @change="setProvider(currentProvider)">
+                                <el-select v-model="currentProvider" placeholder="请选择" @change="setProvider(currentProvider)">
                                     <el-option
-                                            v-for="pro in providers"
-                                            :key="pro.value"
-                                            :label="pro.label"
-                                            :value="pro.value">
+                                            v-for="item in providers"
+                                            :key="item.value"
+                                            :label="item.label"
+                                            :value="item.value">
                                     </el-option>
                                 </el-select>
                             </template>
@@ -56,7 +55,7 @@
                 <div>
                     <ul style="list-style-type:none; margin-left: -30px;">
                         <li v-for="item in keyList" style="line-height: 30px; font-size: 18px">
-                            <el-tooltip class="item" effect="dark" :content="item" placement="top">
+                            <el-tooltip class="item" effect="dark" :content="item" placement="right">
                                 <el-link type="success" @click="getKeyDetails(item)">{{ item }}</el-link>
                             </el-tooltip>
                         </li>
@@ -74,7 +73,7 @@
                                     @confirm="handleDelete()"
                                     title="Are you sure to delete this Key？"
                             >
-                                <el-button slot="reference" size="mini" type="danger">Delete</el-button>
+                                <el-button slot="reference" size="mini" type="danger" >Delete</el-button>
                             </el-popconfirm>
                             <el-button size="mini" type="info" @click="openDialog('etcd')">View</el-button>
                         </template>
@@ -104,14 +103,12 @@
                                     prop="pointer"
                                     label="CurrentKey"
                                     width="100">
-
-                                <template slot-scope="scope">
+                                <template slot-scope="scope" >
                                     <div class="container">
-                                        <el-button type="success" size="mini" v-if="scope.row.pointer == 'yes'"
+                                        <el-button type="danger" size="mini" v-if="scope.row.pointer == 'yes'"
                                                    icon="el-icon-star-off" circle></el-button>
                                     </div>
                                 </template>
-
                             </el-table-column>
                             <el-table-column
                                     prop="created_at"
@@ -122,8 +119,7 @@
                                     label="Operate"
                                     width="200">
                                 <template slot-scope="scope">
-                                    <el-button @click="openDialog('db',scope.row.key, scope.row.version)" type="text"
-                                               size="mini">view
+                                    <el-button @click="openDialog('db',scope.row.key, scope.row.version)" type="text" size="mini">view
                                     </el-button>
                                     <el-button @click="apply(scope.row)" type="text" size="mini">apply</el-button>
                                     <el-button @click="delKey(scope.row)" type="text" size="mini">delete</el-button>
@@ -156,14 +152,15 @@
 </div>
 </body>
 <!-- import Vue before Element -->
-<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.9/vue.min.js"></script>
 <!-- import JavaScript -->
-<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/element-ui/2.14.1/index.min.js"></script>
 <script>
     new Vue({
         el: '#app',
         data: function () {
             return {
+                baseUrl: 'http://127.0.0.1:9091',
                 formData: {
                     key: '',
                     value: ''
@@ -197,7 +194,7 @@
             getKeyList() {
                 let self = this
                 this.keyList = []
-                axios.get("http://127.0.0.1:9091/keys").then(function (res) {
+                axios.get(this.baseUrl + "/keys").then(function (res) {
                     if (res.status == 200) {
                         let data = res.data.data
                         self.keyList = data
@@ -218,7 +215,7 @@
                     },
                     dataType: 'json',
                     method: 'post',
-                    url: "http://127.0.0.1:9091/del",
+                    url: this.baseUrl + "/del",
                     data: {
                         "key": row.key,
                         "version": row.version,
@@ -239,7 +236,7 @@
                     },
                     dataType: 'json',
                     method: 'post',
-                    url: "http://127.0.0.1:9091/apply",
+                    url: this.baseUrl + "/apply",
                     data: {
                         "key": row.key,
                         "version": row.version,
@@ -266,7 +263,7 @@
                     },
                     dataType: 'json',
                     method: 'post',
-                    url: "http://127.0.0.1:9091/keyDetails",
+                    url: this.baseUrl + "/keyDetails",
                     data: {
                         "key": key
                     }
@@ -290,8 +287,7 @@
             },
             viewDetail(key, version) {
                 if (key == "") {
-                    this.$message.error("key is empty");
-                    return
+                    this.$message.error("key is empty");return
                 }
                 let self = this
                 axios({
@@ -300,7 +296,7 @@
                     },
                     dataType: 'json',
                     method: 'post',
-                    url: "http://127.0.0.1:9091/get",
+                    url: this.baseUrl +  "/get",
                     data: {
                         "key": key,
                         "version": version
@@ -310,7 +306,7 @@
                         if (res.data.code == 0) {
                             self.formData = res.data.data
                             self.getKeyDetails(key)
-                        } else {
+                        }else {
                             this.$message.error(res.data.data.msg)
                         }
                     }
@@ -324,8 +320,7 @@
             realDel() {
                 let self = this
                 if (self.currentKey == '') {
-                    self.$message.error('please choose you want to delete key');
-                    return
+                    self.$message.error('please choose you want to delete key'); return
                 }
                 axios({
                     headers: {
@@ -333,7 +328,7 @@
                     },
                     dataType: 'json',
                     method: 'post',
-                    url: "http://127.0.0.1:9091/del",
+                    url: this.baseUrl + "/del",
                     data: {
                         "key": self.currentKey,
                     }
@@ -359,18 +354,18 @@
                     },
                     dataType: 'json',
                     method: 'post',
-                    url: "http://127.0.0.1:9091/set",
+                    url: this.baseUrl + "/set",
                     data: {
                         "key": self.formData.key,
                         "value": self.formData.value
                     }
                 }).then(function (res) {
                     if (res.status == 200) {
-                        if (res.data.code == 0) {
+                        if (res.data.code == 0 ){
                             self.getKeyList()
                             self.getKeyDetails(self.formData.key)
                             self.dialogVisible = false
-                        } else {
+                        }else {
                             self.$message.error(res.data.msg)
                         }
                     }
@@ -380,18 +375,18 @@
             },
             getProviders() {
                 let self = this
-                axios.get("http://127.0.0.1:9091/providers").then(function (res) {
+                axios.get(this.baseUrl + "/providers").then(function (res) {
                     if (res.status == 200) {
-                        if (res.data.code == 0) {
+                        if (res.data.code == 0){
                             let data = res.data.data
-                            for (let i = 0; i < data.length; i++) {
+                            for (let i = 0; i < data.length; i ++) {
                                 let p = {
                                     "label": data[i],
                                     "value": data[i]
                                 }
                                 self.providers.push(p)
                             }
-                        } else {
+                        }else {
                             self.$message.error(res.data.msg)
                         }
                     }
@@ -401,12 +396,12 @@
             },
             getCurrent() {
                 let self = this
-                axios.get("http://127.0.0.1:9091/currentProvider").then(function (res) {
+                axios.get(this.baseUrl+ "/currentProvider").then(function (res) {
                     if (res.status == 200) {
                         if (res.data.code == 0) {
                             let data = res.data.data
                             self.currentProvider = data
-                        } else {
+                        }else {
                             self.$message.error(res.data.msg)
                         }
                     }
@@ -414,12 +409,12 @@
                     console.log(error);
                 });
             },
-            setProvider(value) {
+            setProvider(value){
                 let self = this
-                axios.get("http://127.0.0.1:9091/setProvider?name=" + value).then(function (res) {
+                axios.get(this.baseUrl + "/setProvider?name="+ value).then(function (res) {
                     if (res.status == 200) {
                         if (res.data.code == 0) {
-                        } else {
+                        }else {
                             self.$message.error(res.data.msg)
                         }
                     }
@@ -428,29 +423,21 @@
                 });
             },
             handleSearch() {
-                if (this.searchInput == "") {
-                    this.getKeyList()
-                }else {
-                    let tmp = []
-                    for (let i = 0; i < this.newList.length; i++) {
-                        if (this.newList[i].indexOf(this.searchInput) != -1) {
-                            tmp.push(this.newList[i])
-                        }
+                let tmp = []
+                for (let i = 0; i < this.newList.length; i++) {
+                    if (this.newList[i].indexOf(this.searchInput) != -1) {
+                        tmp.push(this.newList[i])
                     }
-                    this.keyList = tmp
                 }
+                tmp.sort()
+                this.keyList = tmp
             }
         },
         mounted() {
             this.getKeyList()
-        },
-        created() {
             this.getProviders()
             this.getCurrent()
         },
-        // beforeDestroy(){
-        //
-        // },
         watch: {
             searchInput: function (){
                 this.handleSearch()
@@ -466,17 +453,6 @@
 
     #box {
         display: none
-    }
-
-    .container {
-        width: 100%;
-        display: flex; /*设为 Flex 布局以后，子元素的float、clear和vertical-align属性将失效*/
-        display: -webkit-flex; /* Safari */
-        flex-direction: column; /*容器内项目的排列方向(默认横向排列 row)*/
-        flex-wrap: nowrap; /*容器内项目换行方式*/
-        justify-content: center; /*项目在主轴上的对齐方式*/
-        align-items: center; /*项目在交叉轴上如何对齐*/
-        align-content: center; /*定义了多根轴线的对齐方式。如果项目只有一根轴线，该属性不起作用*/
     }
 
     .margin_top {
@@ -496,7 +472,16 @@
     .function_button {
         margin-top: 20px;
     }
-
+    .container{
+        width: 100%;
+        display: flex;/*设为 Flex 布局以后，子元素的float、clear和vertical-align属性将失效*/
+        display: -webkit-flex; /* Safari */
+        flex-direction: column;/*容器内项目的排列方向(默认横向排列 row)*/
+        flex-wrap: nowrap;/*容器内项目换行方式*/
+        justify-content: center;/*项目在主轴上的对齐方式*/
+        align-items: center;/*项目在交叉轴上如何对齐*/
+        align-content: center;/*定义了多根轴线的对齐方式。如果项目只有一根轴线，该属性不起作用*/
+    }
     #app {
         margin: -10px;
     }
