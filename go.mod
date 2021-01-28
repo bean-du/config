@@ -15,6 +15,7 @@ require (
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golang/protobuf v1.4.3 // indirect
 	github.com/google/uuid v1.1.2 // indirect
+	github.com/hashicorp/consul/api v1.8.1 // indirect
 	github.com/urfave/cli/v2 v2.3.0
 	go.uber.org/zap v1.16.0 // indirect
 	google.golang.org/genproto v0.0.0-20201214200347-8c77b98c765d // indirect

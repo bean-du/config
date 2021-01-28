@@ -33,7 +33,7 @@ var index =`
     <meta charset="UTF-8">
     <title>Coco-Config</title>
     <!-- import CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+	<link href="https://cdn.bootcdn.net/ajax/libs/element-ui/2.14.1/theme-chalk/index.min.css" rel="stylesheet">
     <script src="https://cdn.bootcdn.net/ajax/libs/axios/0.21.0/axios.min.js"></script>
 </head>
 <body>
@@ -181,9 +181,9 @@ var index =`
 </div>
 </body>
 <!-- import Vue before Element -->
-<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.9/vue.min.js"></script>
 <!-- import JavaScript -->
-<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/element-ui/2.14.1/index.min.js"></script>
 <script>
     new Vue({
         el: '#app',

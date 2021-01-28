@@ -24,6 +24,9 @@ type Config struct {
 		Username string   `json:"username"`
 		Password string   `json:"password"`
 	} `json:"etcd"`
+
+	Consul struct {
+	} `json:"consul"`
 }
 
 func Init(filename string) []func() {
