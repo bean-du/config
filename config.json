@@ -1,5 +1,7 @@
 {
   "port": ":9091",
+  "db_type": "sqlite",
+  "Sqlite": "./config.db",
   "postgre": {
     "databases": "config",
     "username": "root",

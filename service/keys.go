@@ -46,7 +46,7 @@ func (k *keysSrv) Set(ctx context.Context, key, value string) error {
 		Value:     value,
 		Version:   versionGenerate(),
 		Pointer:   "yes",
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().String(),
 	}
 
 	etcd := provider.GetProvider(provider.ProviderSrv.CurrentProvider)

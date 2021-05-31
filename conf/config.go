@@ -8,8 +8,9 @@ import (
 var Conf = &Config{}
 
 type Config struct {
-	Port string `json:"port"`
-
+	Port    string `json:"port"`
+	DBType  string `json:"db_type"`
+	Sqlite  string `json:"sqlite"`
 	Postgre struct {
 		Databases string `json:"databases"`
 		Username  string `json:"username"`

@@ -20,7 +20,7 @@ type recordRepo struct{}
 
 func (r *recordRepo) Details(key string) ([]*entity.Record, error) {
 	res := make([]*entity.Record, 0, 0)
-	if err := db.Model(&entity.Record{}).Where("key = ?", key).Order("created_at desc").Scan(&res).Error; err != nil {
+	if err := db.Model(&entity.Record{}).Where("key = ?", key).Order("created_at desc").Find(&res).Error; err != nil {
 		return nil, err
 	}
 	return res, nil

@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"log"
-	"time"
 )
 
 var (
@@ -15,10 +15,16 @@ var (
 	DB  *gorm.DB
 )
 
+
+
 func InitDB() func() {
-	DB, err = gorm.Open(postgres.Open(connectionOptions()), &gorm.Config{
-		PrepareStmt: true,
-	})
+	if Conf.DBType == "sqlite" {
+		DB, err = gorm.Open(sqlite.Open(Conf.Sqlite), &gorm.Config{})
+	}else {
+		DB, err = gorm.Open(postgres.Open(connectionOptions()), &gorm.Config{
+			PrepareStmt: true,
+		})
+	}
 	if err != nil {
 		panic(err)
 	}
@@ -29,17 +35,10 @@ func InitDB() func() {
 	db.SetMaxIdleConns(30)
 	db.SetMaxOpenConns(100)
 
-	go func() {
-		t := time.NewTimer(5 * time.Second)
-		for {
-			select {
-			case <-t.C:
-				if err := db.Ping(); err != nil {
-					log.Printf("postgre connect error: %v", err)
-				}
-			}
-		}
-	}()
+	if err := db.Ping(); err != nil {
+		log.Printf("postgre connect error: %v", err)
+		panic(err)
+	}
 
 	return func() {
 		_ = db.Close()
